@@ -31,12 +31,13 @@ def youtubeDownloader():
         print(f"Title: {yt.title}")
         print("Downloading...")
 
+        # Where the video conversion download is done and also where the file path is specified.
         if choice == '1':
             # Select the highest resolution video stream
             ys = yt.streams.get_highest_resolution()
             folder = "Videos"
         else:
-            # Select the audio stream
+            # Select the audio stream "only_audio=True" will download only audio
             ys = yt.streams.filter(only_audio=True).first()
             folder = "Audio"
 
