@@ -1,57 +1,68 @@
-# Dealing with the file system of app
 import os
-# How we interact with the youtube api
 from pytube import YouTube
+from pydub import AudioSegment
 
 def youtubeDownloader():
-    # How we get the link to the youtube video
     link = input("Enter the YouTube link to download: ")
-    
-    # Error handling
+
     if not link:
         print("No Link Entered")
         return
-    
-    # If we have a youtube video provide this option to the user
+
     print("Choose format to download:")
     print("1. Video")
     print("2. Audio")
-    
-    # Get the choice from the user and assign it to choice variable
+
     choice = input("Enter the number of your choice: ")
 
-    # Error Handling if not valid option
     if choice not in ['1', '2']:
         print("Invalid choice")
         return
 
-    # tries to get the youtube video from the youtube api if the choice is 1 it will download the video in the highest resolution. If the chouce is 2 it will download the video in the audio version only.
     try:
         yt = YouTube(link)
         print(f"Title: {yt.title}")
         print("Downloading...")
 
-        # Where the video conversion download is done and also where the file path is specified.
         if choice == '1':
-            # Select the highest resolution video stream
             ys = yt.streams.get_highest_resolution()
             folder = "Videos"
+            file_extension = 'mp4'
         else:
-            # Select the audio stream "only_audio=True" will download only audio
             ys = yt.streams.filter(only_audio=True).first()
             folder = "Audio"
+            file_extension = 'mp4'
 
-        # Create folder if it doesn't exist
         if not os.path.exists(folder):
             os.makedirs(folder)
 
         # Download the file
-        ys.download(folder)
-        
-        # If the file is successfully downloaded send message to user about completion.
-        print(f"Download completed! File saved in {folder}/")
+        temp_file = os.path.join(folder, f"temp.{file_extension}")
+        ys.download(output_path=folder, filename=f"temp.{file_extension}")
+
+        if choice == '2':
+            # Choose audio format for conversion
+            choice2Option = input('Which audio format would you like? Type 1 for MP3 and 2 for WAV: ')
+            audio = AudioSegment.from_file(temp_file)
+
+            if choice2Option == '1':
+                mp3_file = os.path.join(folder, f"{yt.title}.mp3")
+                audio.export(mp3_file, format='mp3')
+                print(f"MP3 file saved in {folder}/")
+            elif choice2Option == '2':
+                wav_file = os.path.join(folder, f"{yt.title}.wav")
+                audio.export(wav_file, format='wav')
+                print(f"WAV file saved in {folder}/")
+            else:
+                print("Invalid choice for audio format")
+                return
+
+            os.remove(temp_file)  # Remove the temporary file
+
+        else:
+            print(f"Download completed! File saved in {folder}/")
+
     except Exception as e:
-        # Error message if something went wrong.
         print(f"An error occurred: {e}")
 
 youtubeDownloader()
